@@ -2,8 +2,6 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact",
     "moduleDetection": "force",
     "module": "ES2022",
     "moduleResolution": "bundler",
@@ -12,12 +10,12 @@
     "paths": {
       "~/*": ["src/*"]
     },
-    "types": ["preact"],
 
     "resolveJsonModule": true,
     "allowJs": true,
     "noEmit": true,
     "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,

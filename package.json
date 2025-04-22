@@ -6,13 +6,16 @@
     "packages/*"
   ],
   "scripts": {
-    "cmd:build": "node scripts/cmd.js --build",
-    "cmd:dev": "node scripts/cmd.js --dev"
+    "build": "pnpx tsx scripts/cmd.ts --build",
+    "dev": "pnpx tsx scripts/cmd.ts --dev"
   },
   "devDependencies": {
     "@ntnyq/eslint-config": "^4.0.4",
+    "@parcel/packager-ts": "2.14.4",
+    "@parcel/transformer-typescript-types": "2.14.4",
     "parcel": "^2.14.4",
-    "serve": "^14.2.4"
+    "serve": "^14.2.4",
+    "typescript": ">=3.0.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -23,5 +26,14 @@
       "msgpackr-extract",
       "unrs-resolver"
     ]
+  },
+  "@parcel/resolver-default": {
+    "packageExports": true
+  },
+  "alias": {
+    "react": "preact/compat",
+    "react-dom": "preact/compat",
+    "react-dom/test-utils": "preact/test-utils",
+    "react/jsx-runtime": "preact/jsx-runtime"
   }
 }

@@ -5,6 +5,7 @@ import process from "node:process";
 import { setTimeout } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { Parcel } from "@parcel/core";
+import { InitialParcelOptions } from "@parcel/types";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,27 +16,31 @@ if (fs.existsSync(distDir)) {
   fs.rmSync(distDir, { recursive: true, force: true });
 }
 
-/**
- * @param {import("@parcel/types").InitialParcelOptions} options
- * @returns {import("@parcel/types").InitialParcelOptions}
- */
-function defineConfig(options = {}) {
+function defineConfig(options: InitialParcelOptions & { distDir?: string }) {
+  const _distDir = options?.distDir ?? distDir
   const entries = [options.entries]
     .flat()
     .map((entry) => entry && path.join(rootDir, entry))
     .filter(Boolean);
 
+  if (options?.targets && !Array.isArray(options.targets)) {
+    for (const [targetName] of Object.entries(options.targets)) {
+      (options.targets[targetName] as any).distDir = _distDir;
+    }
+  }
+
   return {
-    logLevel: "none",
-    cacheDir: path.join(distDir, ".parcel-cache"),
+    logLevel: "verbose",
+    cacheDir: path.join(_distDir, ".parcel-cache"),
     shouldDisableCache: true,
+    shouldPatchConsole: false,
     defaultConfig: path.join(rootDir, "parcel.config.json"),
     mode: "production",
     defaultTargetOptions: {
-      distDir,
+      distDir: _distDir,
       sourceMaps: false,
       shouldOptimize: true,
-      shouldScopeHoist: true,
+      shouldScopeHoist: false,
       outputFormat: "esmodule",
     },
     additionalReporters: [
@@ -47,7 +52,7 @@ function defineConfig(options = {}) {
     env: { NODE_ENV: "production" },
     ...options,
     entries,
-  };
+  } as InitialParcelOptions;
 }
 
 const configs = [
@@ -74,7 +79,7 @@ async function startServer(targetDir) {
 
     // Cleanup on exit
     const cleanup = () => {
-      server.kill();
+      if (!server?.killed) server.kill();
       process.off("SIGQUIT", cleanup);
       process.off("SIGTERM", cleanup);
       process.off("SIGINT", cleanup);
@@ -82,6 +87,13 @@ async function startServer(targetDir) {
     process.on("SIGQUIT", cleanup);
     process.on("SIGTERM", cleanup);
     process.on("SIGINT", cleanup);
+    process.on("uncaughtException", cleanup);
+    process.on("exit", cleanup);
+    server.once("close", cleanup);
+    server.on("error", (err) => {
+      console.error("Server error:", err);
+      resolve(null);
+    });
 
     server.stdout.on("data", (data) => {
       const output = data.toString();
@@ -100,11 +112,6 @@ async function startServer(targetDir) {
         resolve({ server, port: url.port });
       }
     });
-
-    server.on("error", (err) => {
-      console.error("Server error:", err);
-      resolve(null);
-    });
   });
 }
 
@@ -114,7 +121,7 @@ async function killServer(server) {
       return resolve(true);
     }
 
-    server.once("exit", () => {
+    server.once("close", () => {
       resolve(true);
     });
 
@@ -130,7 +137,7 @@ async function handleDev() {
   const servers = new Map();
 
   for (const [i, config] of configs.entries()) {
-    const entryPath = path.relative(rootDir, config.entries[0]);
+    const entryPath = path.relative(rootDir, config.entries![0]);
     const bundler = new Parcel(config);
 
     bundler.watch(async (error, event) => {
@@ -153,7 +160,7 @@ async function handleDev() {
           case "browser":
             {
               if (servers.has(key)) {
-                const { server } = servers.get(i);
+                const { server } = servers.get(key);
                 console.clear();
                 console.log(
                   `[web] Files changed for ${targetName}... restart!`,

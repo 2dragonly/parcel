@@ -1,12 +1,22 @@
 {
   "name": "@goldenstate/parcel-optimizer-obfuscator",
-  "type": "commonjs",
-  "main": "src/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "parcel build"
+  },
   "dependencies": {
+    "@parcel/plugin": "^2.14.4",
     "javascript-obfuscator": "^4.1.1",
     "js-confuser": "^2.0.0"
   },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "typescript": "^5.8.3"
+  },
   "engines": {
     "parcel": "2.x"
-  }
+  },
+  "source": "src/index.ts"
 }

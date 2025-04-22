@@ -1,17 +1,13 @@
 {
   "name": "@goldenstate/website",
   "type": "module",
-  "sideEffects": true,
   "scripts": {},
   "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "preact": "^10.26.5",
     "react-router": "^7.5.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
     "typescript": "^5.8.3"
   }
 }
